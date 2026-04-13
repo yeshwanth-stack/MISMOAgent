@@ -1,0 +1,75 @@
+{
+  "loans": [
+    {
+      "loanIdentifier": "LN-55432",
+      "loanPurposeType": "RateTermRefinance",
+      "mortgageType": "VA",
+      "loanAmortizationType": "InterestOnly",
+      "loanLienPriorityType": "SubordinateLien",
+      "occupancyType": "InvestmentProperty",
+      "loanStatusType": "Closed",
+      "terms": {
+        "loanTermMonths": 240,
+        "interestRateType": "Variable"
+      }
+    }
+  ],
+  "assets": [
+    {
+      "assetType": "RetirementAccount",
+      "assetOwnershipType": "Trust",
+      "assetStatusType": "Unverified",
+      "assetDetail": {
+        "fundSourceType": "Gift"
+      }
+    }
+  ],
+  "collaterals": [
+    {
+      "collateralType": "MixedUseProperty",
+      "collateralStatusType": "Released",
+      "property": {
+        "propertyUsageType": "Commercial",
+        "propertyConditionType": "New",
+        "construction": {
+          "constructionMethodType": "SiteBuilt"
+        },
+        "valuation": {
+          "propertyValuationMethodType": "BrokerPriceOpinion"
+        },
+        "address": {
+          "addressType": "Previous",
+          "stateCode": "IL"
+        }
+      }
+    }
+  ],
+  "parties": [
+    {
+      "partyRoleType": "Lender",
+      "individual": {
+        "maritalStatusType": "Divorced",
+        "citizenshipType": "NonPermanentResidentAlien"
+      },
+      "employment": [
+        {
+          "employmentStatusType": "Retired"
+        }
+      ],
+      "income": [
+        {
+          "incomeType": "RentalIncome"
+        }
+      ],
+      "residences": [
+        {
+          "residencyType": "Mailing",
+          "address": {
+            "addressType": "Mailing",
+            "stateCode": "WA"
+          }
+        }
+      ]
+    }
+  ]
+}

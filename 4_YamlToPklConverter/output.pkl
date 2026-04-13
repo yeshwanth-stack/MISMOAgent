@@ -1,0 +1,555 @@
+import "@xpanse/std.pkl" as std
+import "@xpanse/common.pkl" as common
+import "@xpanse/test.pkl" as test
+
+local const PRODUCT_NAME = ""
+
+config = new std.ProductConfig {
+  name = PRODUCT_NAME
+  properties {
+    loanDetails = new common.Loandetails {
+      properties {
+        loans = new std.ObjectArrayProperty {
+          label = "Loans"
+          required = false
+          items = new std.ObjectProperty {
+            properties {
+              loanIdentifier = new std.StringProperty {
+                label = "Loan Identifier"
+                required = false
+              }
+              loanPurposeType = new std.StringEnumProperty {
+                label = "Loan Purpose Type"
+                required = false
+                items = new Mapping {
+                  ["RateTermRefinance"] = "Rate Term Refinance"
+                  ["CashOutRefinance"] = "Cash Out Refinance"
+                  ["Construction"] = "Construction"
+                  ["Other"] = "Other"
+                }
+              }
+              loanPurposeTypeOtherDescription = new std.StringProperty {
+                label = "Loan Purpose Type Other Description"
+                required = false
+              }
+              mortgageType = new std.StringEnumProperty {
+                label = "Mortgage Type"
+                required = false
+                items = new Mapping {
+                  ["FHA"] = "FHA"
+                  ["VA"] = "VA"
+                  ["USDA"] = "USDA"
+                }
+              }
+              loanAmortizationType = new std.StringEnumProperty {
+                label = "Loan Amortization Type"
+                required = false
+                items = new Mapping {
+                  ["AdjustableRate"] = "Adjustable Rate"
+                  ["InterestOnly"] = "Interest Only"
+                  ["Balloon"] = "Balloon"
+                }
+              }
+              loanLienPriorityType = new std.StringEnumProperty {
+                label = "Loan Lien Priority Type"
+                required = false
+                items = new Mapping {
+                  ["SubordinateLien"] = "Subordinate Lien"
+                }
+              }
+              occupancyType = new std.StringEnumProperty {
+                label = "Occupancy Type"
+                required = false
+                items = new Mapping {
+                  ["SecondHome"] = "Second Home"
+                  ["InvestmentProperty"] = "Investment Property"
+                }
+              }
+              loanStatusType = new std.StringEnumProperty {
+                label = "Loan Status Type"
+                required = false
+                items = new Mapping {
+                  ["Pending"] = "Pending"
+                  ["Closed"] = "Closed"
+                  ["Delinquent"] = "Delinquent"
+                }
+              }
+              terms = new std.ObjectProperty {
+                label = "Terms"
+                required = false
+                properties {
+                  loanTermMonths = new std.DecimalProperty {
+                    label = "Loan Term Months"
+                    required = false
+                    min = 0
+                  }
+                  interestRateType = new std.StringEnumProperty {
+                    label = "Interest Rate Type"
+                    required = false
+                    items = new Mapping {
+                      ["Variable"] = "Variable"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        assets = new std.ObjectArrayProperty {
+          label = "Assets"
+          required = false
+          items = new std.ObjectProperty {
+            properties {
+              assetType = new std.StringEnumProperty {
+                label = "Asset Type"
+                required = false
+                items = new Mapping {
+                  ["SavingsAccount"] = "Savings Account"
+                  ["BrokerageAccount"] = "Brokerage Account"
+                  ["RetirementAccount"] = "Retirement Account"
+                }
+              }
+              assetOwnershipType = new std.StringEnumProperty {
+                label = "Asset Ownership Type"
+                required = false
+                items = new Mapping {
+                  ["Joint"] = "Joint"
+                  ["Trust"] = "Trust"
+                }
+              }
+              assetStatusType = new std.StringEnumProperty {
+                label = "Asset Status Type"
+                required = false
+                items = new Mapping {
+                  ["Pending"] = "Pending"
+                  ["Unverified"] = "Unverified"
+                }
+              }
+              assetDetail = new std.ObjectProperty {
+                label = "Asset Detail"
+                required = false
+                properties {
+                  fundSourceType = new std.StringEnumProperty {
+                    label = "Fund Source Type"
+                    required = false
+                    items = new Mapping {
+                      ["Bonus"] = "Bonus"
+                      ["InvestmentProceeds"] = "Investment Proceeds"
+                      ["Gift"] = "Gift"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        collaterals = new std.ObjectArrayProperty {
+          label = "Collaterals"
+          required = false
+          items = new std.ObjectProperty {
+            properties {
+              collateralType = new std.StringEnumProperty {
+                label = "Collateral Type"
+                required = false
+                items = new Mapping {
+                  ["ManufacturedHome"] = "Manufactured Home"
+                  ["MixedUseProperty"] = "Mixed Use Property"
+                }
+              }
+              collateralStatusType = new std.StringEnumProperty {
+                label = "Collateral Status Type"
+                required = false
+                items = new Mapping {
+                  ["Pending"] = "Pending"
+                  ["Released"] = "Released"
+                }
+              }
+              property = new std.ObjectProperty {
+                label = "Property"
+                required = false
+                properties {
+                  propertyUsageType = new std.StringEnumProperty {
+                    label = "Property Usage Type"
+                    required = false
+                    items = new Mapping {
+                      ["SecondaryResidence"] = "Secondary Residence"
+                      ["Investment"] = "Investment"
+                      ["Commercial"] = "Commercial"
+                    }
+                  }
+                  propertyConditionType = new std.StringEnumProperty {
+                    label = "Property Condition Type"
+                    required = false
+                    items = new Mapping {
+                      ["Existing"] = "Existing"
+                      ["Proposed"] = "Proposed"
+                    }
+                  }
+                  construction = new std.ObjectProperty {
+                    label = "Construction"
+                    required = false
+                    properties {
+                      constructionMethodType = new std.StringEnumProperty {
+                        label = "Construction Method Type"
+                        required = false
+                        items = new Mapping {
+                          ["Modular"] = "Modular"
+                          ["Manufactured"] = "Manufactured"
+                        }
+                      }
+                    }
+                  }
+                  valuation = new std.ObjectProperty {
+                    label = "Valuation"
+                    required = false
+                    properties {
+                      propertyValuationMethodType = new std.StringEnumProperty {
+                        label = "Property Valuation Method Type"
+                        required = false
+                        items = new Mapping {
+                          ["AutomatedValuationModel"] = "Automated Valuation Model"
+                          ["BrokerPriceOpinion"] = "Broker Price Opinion"
+                        }
+                      }
+                    }
+                  }
+                  address = new std.ObjectProperty {
+                    label = "Address"
+                    required = false
+                    properties {
+                      addressType = new std.StringProperty {
+                        label = "Address Type"
+                        required = false
+                      }
+                      stateCode = new std.StringProperty {
+                        label = "State Code"
+                        required = false
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    orderDetails = new common.Orderdetails {
+      properties {
+        parties = new std.ObjectArrayProperty {
+          label = "Parties"
+          required = false
+          items = new std.ObjectProperty {
+            properties {
+              partyRoleType = new std.StringEnumProperty {
+                label = "Party Role Type"
+                required = false
+                items = new Mapping {
+                  ["CoBorrower"] = "Co Borrower"
+                  ["Lender"] = "Lender"
+                  ["Broker"] = "Broker"
+                }
+              }
+              individual = new std.ObjectProperty {
+                label = "Individual"
+                required = false
+                properties {
+                  maritalStatusType = new std.StringEnumProperty {
+                    label = "Marital Status Type"
+                    required = false
+                    items = new Mapping {
+                      ["Single"] = "Single"
+                      ["Divorced"] = "Divorced"
+                      ["Widowed"] = "Widowed"
+                    }
+                  }
+                  citizenshipType = new std.StringEnumProperty {
+                    label = "Citizenship Type"
+                    required = false
+                    items = new Mapping {
+                      ["PermanentResidentAlien"] = "Permanent Resident Alien"
+                      ["NonPermanentResidentAlien"] = "Non Permanent Resident Alien"
+                    }
+                  }
+                }
+              }
+              employment = new std.ObjectArrayProperty {
+                label = "Employment"
+                required = false
+                items = new std.ObjectProperty {
+                  properties {
+                    employmentStatusType = new std.StringEnumProperty {
+                      label = "Employment Status Type"
+                      required = false
+                      items = new Mapping {
+                        ["SelfEmployed"] = "Self Employed"
+                        ["Retired"] = "Retired"
+                        ["Unemployed"] = "Unemployed"
+                      }
+                    }
+                  }
+                }
+              }
+              income = new std.ObjectArrayProperty {
+                label = "Income"
+                required = false
+                items = new std.ObjectProperty {
+                  properties {
+                    incomeType = new std.StringEnumProperty {
+                      label = "Income Type"
+                      required = false
+                      items = new Mapping {
+                        ["Bonus"] = "Bonus"
+                        ["Commission"] = "Commission"
+                        ["RentalIncome"] = "Rental Income"
+                      }
+                    }
+                  }
+                }
+              }
+              residences = new std.ObjectArrayProperty {
+                label = "Residences"
+                required = false
+                items = new std.ObjectProperty {
+                  properties {
+                    residencyType = new std.StringEnumProperty {
+                      label = "Residency Type"
+                      required = false
+                      items = new Mapping {
+                        ["Former"] = "Former"
+                        ["Mailing"] = "Mailing"
+                      }
+                    }
+                    address = new std.ObjectProperty {
+                      label = "Address"
+                      required = false
+                      properties {
+                        addressType = new std.StringProperty {
+                          label = "Address Type"
+                          required = false
+                        }
+                        stateCode = new std.StringProperty {
+                          label = "State Code"
+                          required = false
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+testSuite = new test.Suite {
+  valid {
+    minimal = (test.MINIMAL_PAYLOAD_TEMPLATE) {
+      loanDetails {
+        loans {
+          new {
+            loanIdentifier = "sample-value"
+            loanPurposeType = "RateTermRefinance"
+            loanPurposeTypeOtherDescription = "sample-value"
+            mortgageType = "FHA"
+            loanAmortizationType = "AdjustableRate"
+            loanLienPriorityType = "SubordinateLien"
+            occupancyType = "SecondHome"
+            loanStatusType = "Pending"
+          }
+        }
+      }
+      orderDetails {
+        parties {
+          new {
+            partyRoleType = "CoBorrower"
+            individual {
+              maritalStatusType = "Single"
+              citizenshipType = "PermanentResidentAlien"
+            }
+            residences {
+              new {
+                residencyType = "Former"
+              }
+            }
+          }
+        }
+      }
+    }
+    full = (test.FULL_PAYLOAD_TEMPLATE) {
+      loanDetails {
+        loans {
+          new {
+            loanIdentifier = "sample-value"
+            loanPurposeType = "RateTermRefinance"
+            loanPurposeTypeOtherDescription = "sample-value"
+            mortgageType = "FHA"
+            loanAmortizationType = "AdjustableRate"
+            loanLienPriorityType = "SubordinateLien"
+            occupancyType = "SecondHome"
+            loanStatusType = "Pending"
+            terms {
+              loanTermMonths = 0.0
+              interestRateType = "Variable"
+            }
+          }
+          new {
+            loanIdentifier = "sample-value"
+            loanPurposeType = "RateTermRefinance"
+            loanPurposeTypeOtherDescription = "sample-value"
+            mortgageType = "FHA"
+            loanAmortizationType = "AdjustableRate"
+            loanLienPriorityType = "SubordinateLien"
+            occupancyType = "SecondHome"
+            loanStatusType = "Pending"
+            terms {
+              loanTermMonths = 0.0
+              interestRateType = "Variable"
+            }
+          }
+        }
+        assets {
+          new {
+            assetType = "SavingsAccount"
+            assetOwnershipType = "Joint"
+            assetStatusType = "Pending"
+            assetDetail {
+              fundSourceType = "Bonus"
+            }
+          }
+          new {
+            assetType = "SavingsAccount"
+            assetOwnershipType = "Joint"
+            assetStatusType = "Pending"
+            assetDetail {
+              fundSourceType = "Bonus"
+            }
+          }
+        }
+        collaterals {
+          new {
+            collateralType = "ManufacturedHome"
+            collateralStatusType = "Pending"
+            property {
+              propertyUsageType = "SecondaryResidence"
+              propertyConditionType = "Existing"
+              construction {
+                constructionMethodType = "Modular"
+              }
+              valuation {
+                propertyValuationMethodType = "AutomatedValuationModel"
+              }
+              address {
+                addressType = "sample-value"
+                stateCode = "sample-value"
+              }
+            }
+          }
+          new {
+            collateralType = "ManufacturedHome"
+            collateralStatusType = "Pending"
+            property {
+              propertyUsageType = "SecondaryResidence"
+              propertyConditionType = "Existing"
+              construction {
+                constructionMethodType = "Modular"
+              }
+              valuation {
+                propertyValuationMethodType = "AutomatedValuationModel"
+              }
+              address {
+                addressType = "sample-value"
+                stateCode = "sample-value"
+              }
+            }
+          }
+        }
+      }
+      orderDetails {
+        parties {
+          new {
+            partyRoleType = "CoBorrower"
+            individual {
+              maritalStatusType = "Single"
+              citizenshipType = "PermanentResidentAlien"
+            }
+            employment {
+              new {
+                employmentStatusType = "SelfEmployed"
+              }
+              new {
+                employmentStatusType = "SelfEmployed"
+              }
+            }
+            income {
+              new {
+                incomeType = "Bonus"
+              }
+              new {
+                incomeType = "Bonus"
+              }
+            }
+            residences {
+              new {
+                residencyType = "Former"
+                address {
+                  addressType = "sample-value"
+                  stateCode = "sample-value"
+                }
+              }
+              new {
+                residencyType = "Former"
+                address {
+                  addressType = "sample-value"
+                  stateCode = "sample-value"
+                }
+              }
+            }
+          }
+          new {
+            partyRoleType = "CoBorrower"
+            individual {
+              maritalStatusType = "Single"
+              citizenshipType = "PermanentResidentAlien"
+            }
+            employment {
+              new {
+                employmentStatusType = "SelfEmployed"
+              }
+              new {
+                employmentStatusType = "SelfEmployed"
+              }
+            }
+            income {
+              new {
+                incomeType = "Bonus"
+              }
+              new {
+                incomeType = "Bonus"
+              }
+            }
+            residences {
+              new {
+                residencyType = "Former"
+                address {
+                  addressType = "sample-value"
+                  stateCode = "sample-value"
+                }
+              }
+              new {
+                residencyType = "Former"
+                address {
+                  addressType = "sample-value"
+                  stateCode = "sample-value"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

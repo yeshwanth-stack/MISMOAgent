@@ -1,0 +1,15 @@
+type: object
+properties:
+  payload:
+    type: object
+    properties:
+      loanDetails:
+        type: object
+        properties:
+          # Properties you categorize under loanDetails will appear here
+          # Examples: loans, interestRate, loanAmount, etc.
+      orderDetails:
+        type: object
+        properties:
+          # Properties you categorize under orderDetails will appear here
+          # Examples: parties, assets, collaterals, documents, etc.

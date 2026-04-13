@@ -1,0 +1,246 @@
+type: object
+properties:
+  payload:
+    type: object
+    properties:
+      loanDetails:
+        type: object
+        properties:
+          loans:
+            type: array
+            jpath: $.loans
+            items:
+              type: object
+              properties:
+                loanIdentifier:
+                  type: string
+                  jpath: $.loanIdentifier
+                loanPurposeType:
+                  type: string
+                  enum:
+                    - RateTermRefinance
+                    - CashOutRefinance
+                    - Construction
+                    - Other
+                  jpath: $.loanPurposeType
+                loanPurposeTypeOtherDescription:
+                  type: string
+                  jpath: $.loanPurposeTypeOtherDescription
+                mortgageType:
+                  type: string
+                  enum:
+                    - FHA
+                    - VA
+                    - USDA
+                  jpath: $.mortgageType
+                loanAmortizationType:
+                  type: string
+                  enum:
+                    - AdjustableRate
+                    - InterestOnly
+                    - Balloon
+                  jpath: $.loanAmortizationType
+                loanLienPriorityType:
+                  type: string
+                  enum:
+                    - SubordinateLien
+                  jpath: $.loanLienPriorityType
+                occupancyType:
+                  type: string
+                  enum:
+                    - SecondHome
+                    - InvestmentProperty
+                  jpath: $.occupancyType
+                loanStatusType:
+                  type: string
+                  enum:
+                    - Pending
+                    - Closed
+                    - Delinquent
+                  jpath: $.loanStatusType
+                terms:
+                  type: object
+                  properties:
+                    loanTermMonths:
+                      type: number
+                      jpath: $.terms.loanTermMonths
+                    interestRateType:
+                      type: string
+                      enum:
+                        - Variable
+                      jpath: $.terms.interestRateType
+          assets:
+            type: array
+            jpath: $.assets
+            items:
+              type: object
+              properties:
+                assetType:
+                  type: string
+                  enum:
+                    - SavingsAccount
+                    - BrokerageAccount
+                    - RetirementAccount
+                  jpath: $.assetType
+                assetOwnershipType:
+                  type: string
+                  enum:
+                    - Joint
+                    - Trust
+                  jpath: $.assetOwnershipType
+                assetStatusType:
+                  type: string
+                  enum:
+                    - Pending
+                    - Unverified
+                  jpath: $.assetStatusType
+                assetDetail:
+                  type: object
+                  properties:
+                    fundSourceType:
+                      type: string
+                      enum:
+                        - Bonus
+                        - InvestmentProceeds
+                        - Gift
+                      jpath: $.assetDetail.fundSourceType
+          collaterals:
+            type: array
+            jpath: $.collaterals
+            items:
+              type: object
+              properties:
+                collateralType:
+                  type: string
+                  enum:
+                    - ManufacturedHome
+                    - MixedUseProperty
+                  jpath: $.collateralType
+                collateralStatusType:
+                  type: string
+                  enum:
+                    - Pending
+                    - Released
+                  jpath: $.collateralStatusType
+                property:
+                  type: object
+                  properties:
+                    propertyUsageType:
+                      type: string
+                      enum:
+                        - SecondaryResidence
+                        - Investment
+                        - Commercial
+                      jpath: $.property.propertyUsageType
+                    propertyConditionType:
+                      type: string
+                      enum:
+                        - Existing
+                        - Proposed
+                      jpath: $.property.propertyConditionType
+                    construction:
+                      type: object
+                      properties:
+                        constructionMethodType:
+                          type: string
+                          enum:
+                            - Modular
+                            - Manufactured
+                          jpath: $.property.construction.constructionMethodType
+                    valuation:
+                      type: object
+                      properties:
+                        propertyValuationMethodType:
+                          type: string
+                          enum:
+                            - AutomatedValuationModel
+                            - BrokerPriceOpinion
+                          jpath: $.property.valuation.propertyValuationMethodType
+                    address:
+                      type: object
+                      properties:
+                        addressType:
+                          type: string
+                          jpath: $.property.address.addressType
+                        stateCode:
+                          type: string
+                          jpath: $.property.address.stateCode
+      orderDetails:
+        type: object
+        properties:
+          parties:
+            type: array
+            jpath: $.parties
+            items:
+              type: object
+              properties:
+                partyRoleType:
+                  type: string
+                  enum:
+                    - CoBorrower
+                    - Lender
+                    - Broker
+                  jpath: $.partyRoleType
+                individual:
+                  type: object
+                  properties:
+                    maritalStatusType:
+                      type: string
+                      enum:
+                        - Single
+                        - Divorced
+                        - Widowed
+                      jpath: $.individual.maritalStatusType
+                    citizenshipType:
+                      type: string
+                      enum:
+                        - PermanentResidentAlien
+                        - NonPermanentResidentAlien
+                      jpath: $.individual.citizenshipType
+                employment:
+                  type: array
+                  jpath: $.employment
+                  items:
+                    type: object
+                    properties:
+                      employmentStatusType:
+                        type: string
+                        enum:
+                          - SelfEmployed
+                          - Retired
+                          - Unemployed
+                        jpath: $.employmentStatusType
+                income:
+                  type: array
+                  jpath: $.income
+                  items:
+                    type: object
+                    properties:
+                      incomeType:
+                        type: string
+                        enum:
+                          - Bonus
+                          - Commission
+                          - RentalIncome
+                        jpath: $.incomeType
+                residences:
+                  type: array
+                  jpath: $.residences
+                  items:
+                    type: object
+                    properties:
+                      residencyType:
+                        type: string
+                        enum:
+                          - Former
+                          - Mailing
+                        jpath: $.residencyType
+                      address:
+                        type: object
+                        properties:
+                          addressType:
+                            type: string
+                            jpath: $.address.addressType
+                          stateCode:
+                            type: string
+                            jpath: $.address.stateCode

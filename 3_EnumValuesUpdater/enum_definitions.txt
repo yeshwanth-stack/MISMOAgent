@@ -1,0 +1,53 @@
+loanPurposeType | $.loans[0].loanPurposeType | Purchase, RateTermRefinance, CashOutRefinance, Construction, Other
+
+mortgageType | $.loans[0].mortgageType | Conventional, FHA, VA, USDA
+
+loanAmortizationType | $.loans[0].loanAmortizationType | Fixed, AdjustableRate, InterestOnly, Balloon
+
+loanLienPriorityType | $.loans[0].loanLienPriorityType | FirstLien, SubordinateLien
+
+occupancyType | $.loans[0].occupancyType | PrimaryResidence, SecondHome, InvestmentProperty
+
+loanStatusType | $.loans[0].loanStatusType | Active, Pending, Closed, Delinquent
+
+interestRateType | $.loans[0].terms.interestRateType | Fixed, Variable
+
+assetType | $.assets[0].assetType | CheckingAccount, SavingsAccount, BrokerageAccount, RetirementAccount
+
+assetOwnershipType | $.assets[0].assetOwnershipType | Individual, Joint, Trust
+
+assetStatusType | $.assets[0].assetStatusType | Verified, Pending, Unverified
+
+fundSourceType | $.assets[0].assetDetail.fundSourceType | Salary, Bonus, InvestmentProceeds, Gift
+
+collateralType | $.collaterals[0].collateralType | RealEstate, ManufacturedHome, MixedUseProperty
+
+collateralStatusType | $.collaterals[0].collateralStatusType | Active, Pending, Released
+
+propertyUsageType | $.collaterals[0].property.propertyUsageType | PrimaryResidence, SecondaryResidence, Investment, Commercial
+
+propertyConditionType | $.collaterals[0].property.propertyConditionType | New, Existing, Proposed
+
+constructionMethodType | $.collaterals[0].property.construction.constructionMethodType | SiteBuilt, Modular, Manufactured
+
+propertyValuationMethodType | $.collaterals[0].property.valuation.propertyValuationMethodType | Appraisal, AutomatedValuationModel, BrokerPriceOpinion
+
+addressType | $.collaterals[0].property.address.addressType | SubjectProperty, Mailing, Previous
+
+stateCode | $.collaterals[0].property.address.stateCode | CA, TX, FL, NY, IL, WA
+
+partyRoleType | $.parties[0].partyRoleType | Borrower, CoBorrower, Lender, Broker
+
+maritalStatusType | $.parties[0].individual.maritalStatusType | Married, Single, Divorced, Widowed
+
+citizenshipType | $.parties[0].individual.citizenshipType | USCitizen, PermanentResidentAlien, NonPermanentResidentAlien
+
+employmentStatusType | $.parties[0].employment[0].employmentStatusType | Employed, SelfEmployed, Retired, Unemployed
+
+incomeType | $.parties[0].income[0].incomeType | Salary, Bonus, Commission, RentalIncome
+
+residencyType | $.parties[0].residences[0].residencyType | Current, Former, Mailing
+
+addressType | $.parties[0].residences[0].address.addressType | Current, Former, Mailing
+
+stateCode | $.parties[0].residences[0].address.stateCode | CA, TX, FL, NY, IL, WA

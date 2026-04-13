@@ -1,0 +1,155 @@
+type: object
+properties:
+  loans:
+    type: array
+    jpath: $.loans
+    items:
+      type: object
+      properties:
+        loanIdentifier:
+          type: string
+          jpath: $.loanIdentifier
+        loanPurposeType:
+          type: string
+          jpath: $.loanPurposeType
+        mortgageType:
+          type: string
+          jpath: $.mortgageType
+        loanAmortizationType:
+          type: string
+          jpath: $.loanAmortizationType
+        loanLienPriorityType:
+          type: string
+          jpath: $.loanLienPriorityType
+        occupancyType:
+          type: string
+          jpath: $.occupancyType
+        loanStatusType:
+          type: string
+          jpath: $.loanStatusType
+        terms:
+          type: object
+          properties:
+            loanTermMonths:
+              type: number
+              jpath: $.terms.loanTermMonths
+            interestRateType:
+              type: string
+              jpath: $.terms.interestRateType
+  assets:
+    type: array
+    jpath: $.assets
+    items:
+      type: object
+      properties:
+        assetType:
+          type: string
+          jpath: $.assetType
+        assetOwnershipType:
+          type: string
+          jpath: $.assetOwnershipType
+        assetStatusType:
+          type: string
+          jpath: $.assetStatusType
+        assetDetail:
+          type: object
+          properties:
+            fundSourceType:
+              type: string
+              jpath: $.assetDetail.fundSourceType
+  collaterals:
+    type: array
+    jpath: $.collaterals
+    items:
+      type: object
+      properties:
+        collateralType:
+          type: string
+          jpath: $.collateralType
+        collateralStatusType:
+          type: string
+          jpath: $.collateralStatusType
+        property:
+          type: object
+          properties:
+            propertyUsageType:
+              type: string
+              jpath: $.property.propertyUsageType
+            propertyConditionType:
+              type: string
+              jpath: $.property.propertyConditionType
+            construction:
+              type: object
+              properties:
+                constructionMethodType:
+                  type: string
+                  jpath: $.property.construction.constructionMethodType
+            valuation:
+              type: object
+              properties:
+                propertyValuationMethodType:
+                  type: string
+                  jpath: $.property.valuation.propertyValuationMethodType
+            address:
+              type: object
+              properties:
+                addressType:
+                  type: string
+                  jpath: $.property.address.addressType
+                stateCode:
+                  type: string
+                  jpath: $.property.address.stateCode
+  parties:
+    type: array
+    jpath: $.parties
+    items:
+      type: object
+      properties:
+        partyRoleType:
+          type: string
+          jpath: $.partyRoleType
+        individual:
+          type: object
+          properties:
+            maritalStatusType:
+              type: string
+              jpath: $.individual.maritalStatusType
+            citizenshipType:
+              type: string
+              jpath: $.individual.citizenshipType
+        employment:
+          type: array
+          jpath: $.employment
+          items:
+            type: object
+            properties:
+              employmentStatusType:
+                type: string
+                jpath: $.employmentStatusType
+        income:
+          type: array
+          jpath: $.income
+          items:
+            type: object
+            properties:
+              incomeType:
+                type: string
+                jpath: $.incomeType
+        residences:
+          type: array
+          jpath: $.residences
+          items:
+            type: object
+            properties:
+              residencyType:
+                type: string
+                jpath: $.residencyType
+              address:
+                type: object
+                properties:
+                  addressType:
+                    type: string
+                    jpath: $.address.addressType
+                  stateCode:
+                    type: string
+                    jpath: $.address.stateCode

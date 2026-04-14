@@ -195,8 +195,12 @@ class YamlToPklConverter:
         
         return spaced.title()
     
-    def _humanize_enum(self, enum_val: str) -> str:
+    def _humanize_enum(self, enum_val: Any) -> str:
         """Convert enum value to human-readable form."""
+        # Convert non-string types to string
+        if not isinstance(enum_val, str):
+            return str(enum_val)
+        
         # All-caps abbreviations stay as-is
         if enum_val.isupper() and len(enum_val) <= 4:
             return enum_val

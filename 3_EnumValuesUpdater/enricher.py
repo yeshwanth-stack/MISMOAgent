@@ -79,9 +79,18 @@ class YamlEnumEnricher:
             
             # For the jpath line itself, extract values that come after the jpath
             if idx == jpath_line_idx:
-                # If there's content after the jpath (e.g., "$.path: value, value, value"),extract it
-                # Find the part after the colon or pipe or other separator
-                after_jpath = re.sub(r'(\$\.[^\s:,|]*)\s*[:=|]?\s*', '', line_stripped)
+                # Format is: field_name | jpath | values (separated by pipes)
+                # Extract values by taking everything after the last pipe
+                parts = re.split(r'\|', line_stripped)
+                if len(parts) >= 3:
+                    # Values are in the last part (everything after the second pipe)
+                    after_jpath = '|'.join(parts[2:])  # Handle rare case of pipes in values
+                elif len(parts) == 2:
+                    # Only jpath | values (no field name)
+                    after_jpath = parts[1]
+                else:
+                    after_jpath = ''
+                
                 if after_jpath:
                     line_values = self._extract_values_from_line(after_jpath)
                     values.extend(line_values)
@@ -214,31 +223,42 @@ class YamlEnumEnricher:
             type_indent = enrichment['type_indent']
             enum_value_indent = type_indent + '  '
             
-            # Insert enum lines after type:
+            # Build enum lines in correct order
             enum_lines = [f"{type_indent}enum:"]
             for value in enrichment['matched_def'].values:
                 enum_lines.append(f"{enum_value_indent}- {value}")
             
-            # Insert at position after type line
-            for enum_line in reversed(enum_lines):
-                lines.insert(idx + 1, enum_line)
+            # Insert lines in forward order (not reversed) to maintain correct sequence
+            insert_offset = 0
+            for enum_line in enum_lines:
+                lines.insert(idx + 1 + insert_offset, enum_line)
+                insert_offset += 1
             
             # If "Other" is present, add OtherDescription field after jpath
             if enrichment['matched_def'].has_other:
-                jpath_idx = enrichment['jpath_line_idx']
-                # Adjust jpath index due to enum insertions
-                jpath_idx += len(enum_lines)
-                
                 other_name = f"{enrichment['field_name']}OtherDescription"
-                other_jpath = self._derive_other_description_jpath(enrichment['field_jpath'])
                 
-                field_level_indent = ' ' * enrichment['field_indent_level']
-                type_level_indent = ' ' * (enrichment['field_indent_level'] + 2)
+                # Check if OtherDescription field already exists in the YAML
+                other_exists = False
+                for line in lines:
+                    if re.match(rf'^\s*{re.escape(other_name)}:\s*$', line):
+                        other_exists = True
+                        break
                 
-                # Insert OtherDescription field after jpath line
-                lines.insert(jpath_idx + 1, f"{type_level_indent}jpath: {other_jpath}")
-                lines.insert(jpath_idx + 1, f"{type_level_indent}type: string")
-                lines.insert(jpath_idx + 1, f"{field_level_indent}{other_name}:")
+                if not other_exists:
+                    jpath_idx = enrichment['jpath_line_idx']
+                    # Adjust jpath index due to enum insertions
+                    jpath_idx += len(enum_lines)
+                    
+                    other_jpath = self._derive_other_description_jpath(enrichment['field_jpath'])
+                    
+                    field_level_indent = ' ' * enrichment['field_indent_level']
+                    type_level_indent = ' ' * (enrichment['field_indent_level'] + 2)
+                    
+                    # Insert OtherDescription field after jpath line
+                    lines.insert(jpath_idx + 1, f"{type_level_indent}jpath: {other_jpath}")
+                    lines.insert(jpath_idx + 1, f"{type_level_indent}type: string")
+                    lines.insert(jpath_idx + 1, f"{field_level_indent}{other_name}:")
         
         return '\n'.join(lines)
     
@@ -301,27 +321,32 @@ class YamlEnumEnricher:
                                    definitions: List[EnumDefinition]) -> Optional[EnumDefinition]:
         """
         Find matching enum definition for a field using both field name and jpath.
-        Implements fallback strategy.
+        Uses a scoring system to handle multiple definitions with the same field_name.
         """
         
-        candidates = []
-        
-        # Strategy 1: Exact match on both name and jpath
-        for defn in definitions:
-            if defn.field_name == field_name:
-                # Check if jpaths match (with array index stripping)
-                if self._jpaths_match(field_jpath, defn.jpath):
-                    return defn
-                candidates.append(defn)
-        
-        # Strategy 2: Match by field name only (if exactly one match)
-        if len(candidates) == 1:
-            return candidates[0]
-        
-        # Strategy 3: Match just by name (fallback for ambiguous cases)
+        # Find all definitions with matching field_name
         name_matches = [d for d in definitions if d.field_name == field_name]
+        
+        if not name_matches:
+            return None
+        
+        # If exactly one match, return it immediately
         if len(name_matches) == 1:
             return name_matches[0]
+        
+        # Multiple matches: score each based on jpath quality
+        best_match = None
+        best_score = -1
+        
+        for defn in name_matches:
+            score = self._score_jpath_match(field_jpath, defn.jpath)
+            if score > best_score:
+                best_score = score
+                best_match = defn
+        
+        # Return the best match if it has a meaningful score, otherwise first match as fallback
+        if best_match is not None:
+            return best_match if best_score >= 0 else name_matches[0]
         
         return None
     
@@ -353,6 +378,55 @@ class YamlEnumEnricher:
                 return True
         
         return False
+    
+    def _score_jpath_match(self, yaml_jpath: str, defn_jpath: str) -> int:
+        """
+        Score how well a definition's jpath matches the YAML field's jpath.
+        Higher score = better match. Returns -1 if no meaningful match.
+        
+        Scoring:
+        - Exact match after normalization: 1000 points
+        - Both paths end with same segment(s): points based on matching segment count
+        - No meaningful match: -1
+        """
+        
+        # Normalize both paths (strip array indices)
+        yaml_normalized = re.sub(r'\[\d+\]', '', yaml_jpath)
+        defn_normalized = re.sub(r'\[\d+\]', '', defn_jpath)
+        
+        # Remove leading $ and . if present
+        yaml_normalized = yaml_normalized.lstrip('$.').strip()
+        defn_normalized = defn_normalized.lstrip('$.').strip()
+        
+        # Score 1000 for exact match
+        if yaml_normalized == defn_normalized:
+            return 1000
+        
+        yaml_parts = yaml_normalized.split('.')
+        defn_parts = defn_normalized.split('.')
+        
+        # Check if the paths share a common suffix (both end with same segments)
+        # This handles cases like:
+        # YAML: $.mortgageType matches DEF: $.loans[0].termsOfLoan.mortgageType
+        # because both end with 'mortgageType'
+        min_len = min(len(yaml_parts), len(defn_parts))
+        
+        if min_len > 0:
+            # Count how many segments match from the end
+            matching_from_end = 0
+            for i in range(1, min_len + 1):
+                if yaml_parts[-i] == defn_parts[-i]:
+                    matching_from_end = i
+                else:
+                    break
+            
+            if matching_from_end > 0:
+                # Score based on number of matching segments and length similarity
+                # Prefer definitions that are more specific (longer paths)
+                score = (matching_from_end * 100) + len(defn_parts)
+                return score
+        
+        return -1  # No meaningful match
     
     def _derive_other_description_jpath(self, original_jpath: str) -> str:
         """

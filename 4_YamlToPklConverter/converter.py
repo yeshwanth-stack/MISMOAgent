@@ -228,105 +228,221 @@ class YamlToPklConverter:
         return self.indent_str * self.indent_level
     
     def _build_test_payload(self, properties: Dict[str, Any], minimal: bool = True) -> List[str]:
-        """Build test payload for testSuite - skip payload wrapper."""
+        """Build test payload for testSuite following PKL test suite generator rules."""
         lines = []
         
         for key, val in properties.items():
             # Skip payload wrapper - output its children directly
             if key.lower() == 'payload' and isinstance(val, dict) and 'properties' in val:
                 for sub_key, sub_val in val['properties'].items():
-                    lines.extend(self._build_test_property(sub_key, sub_val, minimal, is_top_level=True))
+                    parent_section = sub_key  # loanDetails or orderDetails
+                    lines.extend(self._build_section_block(sub_key, sub_val, minimal, parent_section))
             else:
-                lines.extend(self._build_test_property(key, val, minimal, is_top_level=True))
+                parent_section = key
+                lines.extend(self._build_section_block(key, val, minimal, parent_section))
         
         return lines
     
-    def _build_test_property(self, key: str, value: Dict[str, Any], minimal: bool = True, is_top_level: bool = False) -> List[str]:
-        """Build a test property value.
+    def _build_section_block(self, section_name: str, section_def: Dict[str, Any], minimal: bool, parent_section: str) -> List[str]:
+        """Build loanDetails or orderDetails section block in test payload."""
+        lines = []
         
-        is_top_level: True if this property is a direct child of loanDetails/orderDetails.
-                     At top level, the first field is always included (for structure).
-                     At nested levels, only key sample fields are included.
+        # Only process if it's loanDetails or orderDetails
+        if section_name not in ['loanDetails', 'orderDetails']:
+            return lines
+        
+        lines.append(f'{self._indent()}{section_name} {{')
+        self.indent_level += 1
+        
+        if 'properties' in section_def:
+            for key, val in section_def['properties'].items():
+                lines.extend(self._build_test_property(key, val, minimal, section_name))
+        
+        self.indent_level -= 1
+        lines.append(f'{self._indent()}}}')
+        
+        return lines
+    
+    def _is_inherited_property(self, prop_name: str, parent_section: str) -> bool:
+        """Check if property is inherited from template class."""
+        inherited_in_loandetails = {
+            'loanNumber', 'loanPurpose', 'primaryBorrower', 'coBorrowers', 'propertyAddress'
+        }
+        inherited_in_orderdetails = set()  # orderDetails has no inherited properties
+        
+        if parent_section == 'loanDetails':
+            return prop_name in inherited_in_loandetails
+        elif parent_section == 'orderDetails':
+            return prop_name in inherited_in_orderdetails
+        return False
+    
+    def _build_test_property(self, key: str, value: Dict[str, Any], minimal: bool, parent_section: str) -> List[str]:
+        """Build a single test property value following PKL test suite rules.
+        
+        Handles:
+        - Inherited template properties (special rules for primaryBorrower, propertyAddress)
+        - Declared properties (no = new Dynamic)
+        - Minimal vs full payload differences
+        - Proper syntax for objects, arrays, scalars, enums
         """
         lines = []
         prop_type = value.get('type', 'string')
+        is_inherited = self._is_inherited_property(key, parent_section)
         
         if prop_type == 'object':
-            lines.append(f'{self._indent()}{key} {{')
-            self.indent_level += 1
-            
-            if 'properties' in value:
-                properties_list = list(value['properties'].items())
-                for idx, (sub_key, sub_val) in enumerate(properties_list):
-                    if not minimal:
-                        # Full payload: include all
-                        lines.extend(self._build_test_property(sub_key, sub_val, minimal, is_top_level=False))
-                    else:
-                        # Minimal payload
-                        is_first = idx == 0
-                        is_key_sample = self._is_key_sample(sub_key)
-                        
-                        # Rules:
-                        # - At top level: include first field OR key samples
-                        # - At nested levels: ONLY key samples
-                        should_include = False
-                        if is_top_level and is_first:
-                            should_include = True
-                        elif is_key_sample:
-                            should_include = True
-                        
-                        if should_include:
-                            lines.extend(self._build_test_property(sub_key, sub_val, minimal, is_top_level=False))
-            
-            self.indent_level -= 1
-            lines.append(f'{self._indent()}}}')
-            
+            return self._build_object_test_value(key, value, minimal, parent_section, is_inherited)
         elif prop_type == 'array':
-            lines.append(f'{self._indent()}{key} {{')
-            self.indent_level += 1
-            
-            item_count = 1 if minimal else 2
-            for i in range(item_count):
-                lines.append(f'{self._indent()}new {{')
-                self.indent_level += 1
-                
-                if 'items' in value and 'properties' in value['items']:
-                    items_list = list(value['items']['properties'].items())
-                    for idx, (item_key, item_val) in enumerate(items_list):
-                        if not minimal:
-                            # Full payload: include all
-                            lines.extend(self._build_test_property(item_key, item_val, minimal, is_top_level=False))
-                        else:
-                            # Minimal: ONLY include key sample fields in arrays
-                            if self._is_key_sample(item_key):
-                                lines.extend(self._build_test_property(item_key, item_val, minimal, is_top_level=False))
-                
-                self.indent_level -= 1
-                lines.append(f'{self._indent()}}}')
-            
-            self.indent_level -= 1
-            lines.append(f'{self._indent()}}}')
-            
+            return self._build_array_test_value(key, value, minimal, parent_section)
         elif prop_type == 'string':
-            if 'enum' in value:
-                enum_val = value['enum'][0]
-                lines.append(f'{self._indent()}{key} = "{enum_val}"')
-            else:
-                lines.append(f'{self._indent()}{key} = "sample-value"')
-                
+            return self._build_string_test_value(key, value)
         elif prop_type == 'number':
-            if self._should_use_integer(key):
-                lines.append(f'{self._indent()}{key} = 1')
-            else:
-                lines.append(f'{self._indent()}{key} = 0.0')
-                
+            return self._build_number_test_value(key)
         elif prop_type == 'boolean':
             lines.append(f'{self._indent()}{key} = false')
+            return lines
         
         return lines
+    
+    def _build_object_test_value(self, key: str, value: Dict[str, Any], minimal: bool, parent_section: str, is_inherited: bool) -> List[str]:
+        """Build test value for object properties.
+        
+        Rules:
+        - propertyAddress: Always use = new Dynamic { ... } in both minimal and full
+        - primaryBorrower (if has child objects): 
+          - minimal: plain nesting { ... }
+          - full: = new Dynamic { ... }
+        - Other inherited properties: plain nesting
+        - Declared properties (non-inherited): plain nesting
+        - ALL properties from config are included in both minimal and full
+        """
+        lines = []
+        
+        # Special case: propertyAddress ALWAYS needs = new Dynamic in both minimal and full
+        if key == 'propertyAddress' and is_inherited:
+            lines.append(f'{self._indent()}{key} = new Dynamic {{')
+            self.indent_level += 1
+            if 'properties' in value:
+                # Include ALL properties
+                for sub_key, sub_val in value['properties'].items():
+                    lines.extend(self._build_test_property(sub_key, sub_val, minimal, parent_section))
+            self.indent_level -= 1
+            lines.append(f'{self._indent()}}}')
+            return lines
+        
+        # Special case: primaryBorrower in full payload uses = new Dynamic
+        if key == 'primaryBorrower' and is_inherited and not minimal:
+            lines.append(f'{self._indent()}{key} = new Dynamic {{')
+            self.indent_level += 1
+            if 'properties' in value:
+                # Include ALL properties
+                for sub_key, sub_val in value['properties'].items():
+                    lines.extend(self._build_test_property(sub_key, sub_val, minimal, parent_section))
+            self.indent_level -= 1
+            lines.append(f'{self._indent()}}}')
+            return lines
+        
+        # Default: plain nesting (for all other objects, or primaryBorrower in minimal)
+        lines.append(f'{self._indent()}{key} {{')
+        self.indent_level += 1
+        
+        if 'properties' in value:
+            # Include ALL properties in both minimal and full payloads
+            for sub_key, sub_val in value['properties'].items():
+                lines.extend(self._build_test_property(sub_key, sub_val, minimal, parent_section))
+        
+        self.indent_level -= 1
+        lines.append(f'{self._indent()}}}')
+        
+        return lines
+    
+    def _build_array_test_value(self, key: str, value: Dict[str, Any], minimal: bool, parent_section: str) -> List[str]:
+        """Build test value for array properties - include ALL fields in both minimal and full."""
+        lines = []
+        
+        lines.append(f'{self._indent()}{key} {{')
+        self.indent_level += 1
+        
+        # Always include at least 1 item
+        item_count = 1
+        for i in range(item_count):
+            lines.append(f'{self._indent()}new {{')
+            self.indent_level += 1
+            
+            if 'items' in value and 'properties' in value['items']:
+                # Include ALL properties in both minimal and full
+                for item_key, item_val in value['items']['properties'].items():
+                    lines.extend(self._build_test_property(item_key, item_val, minimal, parent_section))
+            
+            self.indent_level -= 1
+            lines.append(f'{self._indent()}}}')
+        
+        self.indent_level -= 1
+        lines.append(f'{self._indent()}}}')
+        
+        return lines
+    
+    def _build_string_test_value(self, key: str, value: Dict[str, Any]) -> List[str]:
+        """Build test value for string properties."""
+        lines = []
+        
+        if 'enum' in value and value['enum']:
+            # Use first enum value
+            enum_val = value['enum'][0]
+            lines.append(f'{self._indent()}{key} = "{enum_val}"')
+        else:
+            # Generate sensible default based on field name
+            test_val = self._generate_string_test_value(key)
+            lines.append(f'{self._indent()}{key} = "{test_val}"')
+        
+        return lines
+    
+    def _build_number_test_value(self, key: str) -> List[str]:
+        """Build test value for number properties."""
+        lines = []
+        
+        if self._should_use_integer(key):
+            # IntegerProperty: no decimal suffix
+            lines.append(f'{self._indent()}{key} = 1')
+        else:
+            # DecimalProperty: MUST have .0 suffix
+            lines.append(f'{self._indent()}{key} = 0.0')
+        
+        return lines
+    
+    def _generate_string_test_value(self, key: str) -> str:
+        """Generate realistic test value for string field based on field name."""
+        key_lower = key.lower()
+        
+        # Date fields
+        if 'date' in key_lower:
+            return "2025-01-15"
+        # Name fields
+        if 'firstname' in key_lower:
+            return "John"
+        if 'lastname' in key_lower:
+            return "Doe"
+        if 'name' in key_lower:
+            return "John Doe"
+        # Address fields
+        if 'address' in key_lower:
+            return "123 Main St"
+        if 'city' in key_lower:
+            return "Springfield"
+        if 'state' in key_lower:
+            return "IL"
+        if 'postal' in key_lower or 'zipcode' in key_lower:
+            return "62701"
+        # ID fields
+        if 'identifier' in key_lower or 'id' in key_lower:
+            return "ID-001"
+        # Type fields
+        if 'type' in key_lower:
+            return "Standard"
+        # Generic fallback
+        return f"sample-{key}"
     
     def _is_key_sample(self, key: str) -> bool:
         """Determine if a key should be included in minimal test payload."""
         # Include key fields in minimal payload
-        priority_keywords = ['id', 'identifier', 'type', 'name', 'amount']
+        priority_keywords = ['id', 'identifier', 'type', 'name', 'amount', 'firstname', 'lastname', 'address', 'city', 'state', 'postal']
         return any(keyword in key.lower() for keyword in priority_keywords)

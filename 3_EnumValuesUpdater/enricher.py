@@ -156,8 +156,9 @@ class YamlEnumEnricher:
             
             part = part.strip()
             
-            # Should be a PascalCase or UPPERCASE word
-            if part and re.match(r'^[A-Z][a-zA-Z0-9]*$', part):
+            # Accept any alphanumeric value including underscores and hyphens
+            # Rejects only empty strings, pure numbers, or special chars
+            if part and re.match(r'^[a-zA-Z0-9_-]+$', part):
                 values.append(part)
         
         return values
@@ -223,16 +224,28 @@ class YamlEnumEnricher:
             type_indent = enrichment['type_indent']
             enum_value_indent = type_indent + '  '
             
-            # Build enum lines in correct order
-            enum_lines = [f"{type_indent}enum:"]
-            for value in enrichment['matched_def'].values:
-                enum_lines.append(f"{enum_value_indent}- {value}")
+            # Check if enum already exists after type: string
+            enum_already_exists = False
+            if idx + 1 < len(lines):
+                next_line = lines[idx + 1].strip()
+                if next_line.startswith('enum:'):
+                    enum_already_exists = True
             
-            # Insert lines in forward order (not reversed) to maintain correct sequence
-            insert_offset = 0
-            for enum_line in enum_lines:
-                lines.insert(idx + 1 + insert_offset, enum_line)
-                insert_offset += 1
+            # Only insert enum if it doesn't already exist
+            if not enum_already_exists:
+                # Build enum lines in correct order
+                enum_lines = [f"{type_indent}enum:"]
+                for value in enrichment['matched_def'].values:
+                    enum_lines.append(f"{enum_value_indent}- {value}")
+                
+                # Insert lines in forward order (not reversed) to maintain correct sequence
+                insert_offset = 0
+                for enum_line in enum_lines:
+                    lines.insert(idx + 1 + insert_offset, enum_line)
+                    insert_offset += 1
+            else:
+                # Set insert_offset to 0 since we didn't insert anything
+                insert_offset = 0
             
             # If "Other" is present, add OtherDescription field after jpath
             if enrichment['matched_def'].has_other:
@@ -247,8 +260,9 @@ class YamlEnumEnricher:
                 
                 if not other_exists:
                     jpath_idx = enrichment['jpath_line_idx']
-                    # Adjust jpath index due to enum insertions
-                    jpath_idx += len(enum_lines)
+                    # Adjust jpath index due to enum insertions (only if we actually inserted enums)
+                    if not enum_already_exists:
+                        jpath_idx += len(enum_lines)
                     
                     other_jpath = self._derive_other_description_jpath(enrichment['field_jpath'])
                     
